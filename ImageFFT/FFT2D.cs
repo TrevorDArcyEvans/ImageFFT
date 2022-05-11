@@ -1,46 +1,42 @@
 ﻿namespace ImageFFT;
 
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 /// <summary>
 /// stolen from:
 ///     https://epochabuse.com/fourier-transform/
 ///     Copyright (c) 2020 Andraz Krzisnik
+///
+/// NOTE:   all images must be grayscale
 /// </summary>
 public static class FFT2D
 {
-    public static Complex[][] ToComplex(Bitmap image)
+    public static Complex[][] ToComplex(Image<Rgba32> image)
     {
         var w = image.Width;
         var h = image.Height;
-
-        var input_data = image.LockBits(
-            new Rectangle(0, 0, w, h),
-            ImageLockMode.ReadOnly,
-            PixelFormat.Format32bppArgb);
-
-        var bytes = input_data.Stride * input_data.Height;
-
-        var buffer = new byte[bytes];
         var result = new Complex[w][];
-
-        Marshal.Copy(input_data.Scan0, buffer, 0, bytes);
-        image.UnlockBits(input_data);
-
-        int pixel_position;
-
-        for (var x = 0; x < w; x++)
+        foreach (var x in Enumerable.Range(0, w))
         {
             result[x] = new Complex[h];
-            for (var y = 0; y < h; y++)
-            {
-                pixel_position = y * input_data.Stride + x * 4;
-                result[x][y] = new Complex(buffer[pixel_position], 0);
-            }
         }
+
+        image.ProcessPixelRows(acc =>
+        {
+            for (var y = 0; y < acc.Height; y++)
+            {
+                var pxRow = acc.GetRowSpan(y);
+                for (var x = 0; x < pxRow.Length; x++)
+                {
+                    ref var px = ref pxRow[x];
+                    var gray = (px.R + px.G + px.B) / 3;
+                    result[x][y] = new Complex(gray, 0);
+                }
+            }
+        });
 
         return result;
     }
@@ -100,7 +96,7 @@ public static class FFT2D
         return result;
     }
 
-    public static Complex[][] Forward(Bitmap image)
+    public static Complex[][] Forward(Image<Rgba32> image)
     {
         if (image.Width != image.Height)
         {
@@ -133,7 +129,7 @@ public static class FFT2D
         return f;
     }
 
-    public static Bitmap Padding(this Bitmap image)
+    public static Image<Rgba32> Padding(this Image<Rgba32> image)
     {
         var size = 0;
         var w = image.Width;
@@ -150,51 +146,7 @@ public static class FFT2D
             n++;
         }
 
-        double horizontal_padding = size - w;
-        double vertical_padding = size - h;
-        var left_padding = (int)Math.Floor(horizontal_padding / 2);
-        var top_padding = (int)Math.Floor(vertical_padding / 2);
-
-        var image_data = image.LockBits(
-            new Rectangle(0, 0, w, h),
-            ImageLockMode.ReadOnly,
-            PixelFormat.Format32bppArgb);
-
-        var bytes = image_data.Stride * image_data.Height;
-        var buffer = new byte[bytes];
-        Marshal.Copy(image_data.Scan0, buffer, 0, bytes);
-        image.UnlockBits(image_data);
-
-        var padded_image = new Bitmap(size, size);
-
-        var padded_data = padded_image.LockBits(
-            new Rectangle(0, 0, size, size),
-            ImageLockMode.WriteOnly,
-            PixelFormat.Format32bppArgb);
-
-        var padded_bytes = padded_data.Stride * padded_data.Height;
-        var result = new byte[padded_bytes];
-
-        for (var i = 3; i < padded_bytes; i += 4)
-        {
-            result[i] = 255;
-        }
-
-        for (var y = 0; y < h; y++)
-        {
-            for (var x = 0; x < w; x++)
-            {
-                var image_position = y * image_data.Stride + x * 4;
-                var padding_position = y * padded_data.Stride + x * 4;
-                for (var i = 0; i < 3; i++)
-                {
-                    result[padded_data.Stride * top_padding + 4 * left_padding + padding_position + i] = buffer[image_position + i];
-                }
-            }
-        }
-
-        Marshal.Copy(result, 0, padded_data.Scan0, padded_bytes);
-        padded_image.UnlockBits(padded_data);
+        var padded_image = image.Clone(img => img.Pad(size, size, Color.White));
 
         return padded_image;
     }
@@ -216,20 +168,12 @@ public static class FFT2D
         return transform;
     }
 
-    public static Bitmap Inverse(Complex[][] frequencies)
+    public static Image<Rgba32> Inverse(Complex[][] frequencies)
     {
         var size = frequencies.Length;
         var p = new Complex[size][];
         var f = new Complex[size][];
         var t = new Complex[size][];
-
-        var image = new Bitmap(size, size);
-        var image_data = image.LockBits(
-            new Rectangle(0, 0, size, size),
-            ImageLockMode.WriteOnly,
-            PixelFormat.Format32bppArgb);
-        var bytes = image_data.Stride * image_data.Height;
-        var result = new byte[bytes];
 
         for (var i = 0; i < size; i++)
         {
@@ -247,22 +191,22 @@ public static class FFT2D
             f[i] = Inverse(t[i]);
         }
 
-        for (var y = 0; y < size; y++)
+        var image = new Image<Rgba32>(size, size);
+        image.ProcessPixelRows(acc =>
         {
-            for (var x = 0; x < size; x++)
+            for (var y = 0; y < acc.Height; y++)
             {
-                var pixel_position = y * image_data.Stride + x * 4;
-                for (var i = 0; i < 3; i++)
+                var pxRow = acc.GetRowSpan(y);
+                for (var x = 0; x < pxRow.Length; x++)
                 {
-                    result[pixel_position + i] = (byte)Complex.Abs(f[x][y]);
+                    ref var px = ref pxRow[x];
+                    var gray = (byte)Complex.Abs(f[x][y]);
+                    px.R = px.G = px.B = gray;
+                    px.A = Byte.MaxValue;
                 }
-
-                result[pixel_position + 3] = 255;
             }
-        }
+        });
 
-        Marshal.Copy(result, 0, image_data.Scan0, bytes);
-        image.UnlockBits(image_data);
         return image;
     }
 }
