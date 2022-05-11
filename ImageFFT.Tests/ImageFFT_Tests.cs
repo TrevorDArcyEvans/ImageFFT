@@ -1,7 +1,6 @@
 namespace ImageFFT.Tests;
 
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using FluentAssertions;
 using NUnit.Framework;
