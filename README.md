@@ -43,9 +43,15 @@ The general restriction on FFT of an image is that the image must be square
 and its dimensions must be a power of 2.  If the image does not meet these
 restrictions, the library has functions to pad it out so that it does.
 
+There is no specific restriction on colour depth as the image is automatically
+converted to grayscale before doing a forward FFT.  This means that the inverse
+FFT will return a grayscale version of the original image.
+
 # Further work
 * ~~port to [ImageSharp](https://github.com/SixLabors/ImageSharp)~~
 * ~~unit tests~~
+* ~~Blazor WASM web UI~~
+* ~~automatically convert images to grayscale~~
 
 # Further information
 * [Articles by Andraz Krzisnik](https://epochabuse.com/author/andrson311/)
@@ -54,5 +60,6 @@ restrictions, the library has functions to pad it out so that it does.
 # Acknowledgements
 * [How To Use Fourier Transform On Images](https://epochabuse.com/fourier-transform/)
 * [Fourier transform](https://github.com/Frederoche/Fourier-transform)
+* [Grayscale](https://en.wikipedia.org/wiki/Grayscale) 
 * [Arts fft scope icon](https://iconarchive.com/show/tulliana-2-icons-by-umut-pulat/arts-fft-scope-icon.html) 
  
