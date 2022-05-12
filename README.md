@@ -3,10 +3,12 @@ Based on code by [Andraz Krzisnik](https://www.linkedin.com/in/andraz-krzisnik-5
 
 [How To Use Fourier Transform On Images](https://epochabuse.com/fourier-transform/)
 
+![screenshot](screenshot-ui-web.png)
+
 # Features
 * runs on .NET Core
 * supports Linux
-* webassembly compatible
+* runs in browser with webassembly
 
 # Getting started
 
@@ -19,6 +21,16 @@ dotnet restore
 dotnet build
 dotnet test
 ```
+
+ ## Web UI
+```bash
+cd cd ImageFFT.UI.Web/
+dotnet restore
+dotnet build
+dotnet run
+```
+
+open [ImageFFT](http://localhost:5194/)
 
 </details>
 
@@ -41,3 +53,6 @@ restrictions, the library has functions to pad it out so that it does.
 
 # Acknowledgements
 * [How To Use Fourier Transform On Images](https://epochabuse.com/fourier-transform/)
+* [Fourier transform](https://github.com/Frederoche/Fourier-transform)
+* [Arts fft scope icon](https://iconarchive.com/show/tulliana-2-icons-by-umut-pulat/arts-fft-scope-icon.html) 
+ 
