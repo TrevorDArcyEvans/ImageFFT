@@ -12,6 +12,7 @@ public class ImageFFT_Tests
   [Test]
   public void RoundTrip_Succeeds()
   {
+	// reference image is already 256x256 grayscale
     var baseImg = Image.Load<Rgba32>("images/lena.png");
     var baseBytes = new byte[baseImg.Width * baseImg.Height * Unsafe.SizeOf<Rgba32>()];
     baseImg.CopyPixelDataTo(baseBytes);
