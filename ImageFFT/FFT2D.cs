@@ -32,7 +32,10 @@ public static class FFT2D
                 for (var x = 0; x < pxRow.Length; x++)
                 {
                     ref var px = ref pxRow[x];
-                    var gray = (px.R + px.G + px.B) / 3;
+
+                    // https://en.wikipedia.org/wiki/Grayscale
+                    var gray = (29.9 * px.R + 58.7 * px.G + 11.4 * px.B) / 100;
+
                     result[x][y] = new Complex(gray, 0);
                 }
             }
