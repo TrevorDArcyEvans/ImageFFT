@@ -12,13 +12,11 @@ public sealed partial class Index
   private string _img1FileName { get; set; } = "Upload image";
   private string _img1Url { get; set; } = GetDefaultImageString();
   private string _img2Url { get; set; } = GetDefaultImageString();
-  private string _text { get; set; } = "Image must be grayscale";
 
   private async Task LoadFile1(InputFileChangeEventArgs e)
   {
     _img1 = await GetImage(e.File);
     _img1FileName = e.File.Name;
-    _text = _img1 is null ? $"<b>{_img1FileName}</b> --> unknown format" : string.Empty;
     _img1Url = await GetImageString(e.File);
 
     var paddedImg = FFT2D.Padding(_img1);
