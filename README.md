@@ -10,6 +10,9 @@ Based on code by [Andraz Krzisnik](https://www.linkedin.com/in/andraz-krzisnik-5
 * supports Linux
 * runs in browser with webassembly
 
+# Prerequisites
+* .NET Core 6
+
 # Getting started
 
 <details>
@@ -24,7 +27,7 @@ dotnet test
 
  ## Web UI
 ```bash
-cd cd ImageFFT.UI.Web/
+cd ImageFFT.UI.Web/
 dotnet restore
 dotnet build
 dotnet run
